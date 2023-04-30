@@ -1,32 +1,22 @@
 # Space-Gateway
 
-Main File Name: POO_Project.cpp
+Main File Name: POO_Project_v2.cpp
 
-Theme: Space Gateway
+Theme: Simulator [Space Gateway]
 
 Classes: 
 
--Seat: It is used to store individual seats on a ship. The class stores a lot of data about the seat like,
-       Seat_Type: what type of class is it, first class, bussiness, economy.
-       Seat_Number: what id number the seat has
-       Seat_Price: how much does the seat cost
-       Seat_Availability: Is the seat taken or free
-       
--Ship: The ship has a destination and a number of seats on it that you can choose to buy a ticket
+-FuelCell: It is used to store the main game data and perform calculations for the gameplay
+ 
+-Elements: This is an abstract class used as a base class for inheriting common behaviours and variables
+-Fluxium: This class is used to store and perform specialised calculations for the "Fluxium" : Element
+-Moderators: This class is also used to store and perform specialised calculations for the other Elements
 
-Currently in the app you can buy tickets to destinations. You will be presented with a list of ships to choose from and then you will be presented
-with a list of empty seats on the ship. After you buy the ticket you will redirected to a page where you can see a summary of your ticket, from there
-you could either go back or change your ticket. (In the future, you will be able to buy multiple tickets at once)
-
-Besides that you can use option 3 to generate a new world (aka. generate new ships), there you will see the current settings of the generator.
-Additionally you can see current ships information. If you select a ship you will be presented with a list of all the seats, here you can type 
-the seat number and it will change it's current occupancy (from taken to free; from free to taken)
+This game is still an early version of a simulator in which you will be able to create and test different fuels for a sci-fi reactor. Currently you can create a Fuel Cell using the main fuel "Fluxium", and 5 different moderators that can help you achieve an optimised fuel. You will have to balance things like power output, stability, radiation and price. Each of this paramaters affect one another. The game has an easy, simple interface with very simple controls that allows you to change the settings.
 
 
 Next Update:
-Adding more types of ships using inheritence. Things like cargo ships or battleships etc.
-Adding another class that will store user information, this could be used to apply discounts to tickets or restrictions to destinations (passport visa) etc.
-Improving the generation: - General improvements
-                          - Adding departure times to the ships and keeping track of which ship has been generated so that they will not overlap
-Adding "Transportation Businesses", entities that can buy ships and have an inventory, they will be providing the ships to customers.
-And more...
+In the future the game's calculations and mathematics will be changed to achieve a more engaging experience and more true-to-life relationships between the elements.
+Also more settings and abilities will be added to expand on the currently simplistic gameplay.
+
+The biggest future update will be the reactor simulation in which you will be able to test the fuel that you make, allowing more settings and features into the game.
