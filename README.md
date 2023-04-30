@@ -20,3 +20,8 @@ In the future the game's calculations and mathematics will be changed to achieve
 Also more settings and abilities will be added to expand on the currently simplistic gameplay.
 
 The biggest future update will be the reactor simulation in which you will be able to test the fuel that you make, allowing more settings and features into the game.
+
+
+
+
+DISCLAIMER: Due to the requirements of the second phase of the project development, I have decided to change the gameplay and code entierly to allow for more updates in the future. I have made sure to still maintain the previous phase requirements (to some extent at least).
