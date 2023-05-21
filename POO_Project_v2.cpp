@@ -4,50 +4,31 @@
 #include <ctime>
 #include <cstdlib>
 #include <math.h>
+#include <random>
 using namespace std;
 
 static int dT = 100;
+
+template<typename T>
 struct Results
 {
-	int m_price; 
+	int m_price;
 	int power;
 	int stability;
-	int radioactivity; 
+	int radioactivity;
 	int op_price;
 };
 
-// Helper functions
-// Used to set the color of the text inside the console
-void SetColor(int ForgC)
-{
-	WORD wColor;
-
-	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-	if (GetConsoleScreenBufferInfo(hStdOut, &csbi))
-	{
-		wColor = (csbi.wAttributes & 0xF0) + (ForgC & 0x0F);
-		SetConsoleTextAttribute(hStdOut, wColor);
-	}
-	return;
-}
-// Generates a random number inside a given range
-int RandomRange(int min, int max)
-{
-	int x = min + (rand() % max);
-	return x;
-}
-
+template<typename T>
 class Element
 {
 protected:
 	string name;
 	string description;
 	int amount;
-	Results properties;
+	Results<T> properties;
 public:
-	Element(string _name, string _description, Results _propert)
+	Element(string _name, string _description, Results<T> _propert)
 	{
 		name = _name;
 		description = _description;
@@ -55,16 +36,18 @@ public:
 		properties = _propert;
 	}
 
-	virtual Results get_properties() = 0;
+	virtual Results<T> get_properties() = 0;
 
 	string get_name()
 	{
 		return get_name();
 	}
+
 	string get_description()
 	{
 		return description;
 	}
+
 	int get_amount()
 	{
 		return amount;
@@ -81,12 +64,14 @@ public:
 			amount = 0;
 	}
 };
-class Fluxium : public Element
+
+template<typename T>
+class Fluxium : public Element<T>
 {
 protected:
 	int e_ratio; // Enrichment ratio, this changes the isotope ratio of the Fluxium, the bigger the ratio, the bigger the m_price and power, also changes stability and radioactivity
 public:
-	Fluxium(string name, string description, Results propert) :Element(name, description, propert)
+	Fluxium(string name, string description, Results<T> propert) : Element<T>(name, description, propert)
 	{
 		e_ratio = 5;
 	}
@@ -95,14 +80,15 @@ public:
 	{
 		return e_ratio;
 	}
-	Results get_properties()
+
+	Results<T> get_properties()
 	{
-		Results temp_propert = {
-			(int)(properties.m_price * amount * (float)(0.031f *(float) pow(e_ratio, 1.123f) + 0.568)),
-			(int)(properties.power * amount * (float)(2.123 *(float) log(0.143 * e_ratio + 1.118f) - 0.699f)),
-			(int)((properties.stability * (float)(17.312f /(float) pow(e_ratio,0.693f) - 0.705f)) / (amount * 0.25f)),
-			(int)(properties.radioactivity * amount * (float)(5.168f - 1.865f *(float) pow(e_ratio,0.217f))),
-			properties.op_price * amount
+		Results<T> temp_propert = {
+			(int)(this->properties.m_price * this->amount * (T)(0.031f * (T)pow(e_ratio, 1.123f) + 0.568)),
+			(int)(this->properties.power * this->amount * (T)(2.123 * (T)log(0.143 * e_ratio + 1.118f) - 0.699f)),
+			(int)((this->properties.stability * (T)(17.312f / (T)pow(e_ratio, 0.693f) - 0.705f)) / (this->amount * 0.25f)),
+			(int)(this->properties.radioactivity * this->amount * (T)(5.168f - 1.865f * (T)pow(e_ratio, 0.217f))),
+			this->properties.op_price * this->amount
 		};
 		return temp_propert;
 	}
@@ -116,11 +102,13 @@ public:
 		e_ratio = _e_ratio;
 	}
 };
-class Moderators : public Element
+
+template<typename T>
+class Moderators : public Element<T>
 {
-	int quality; // Higher quality materials will result in more powerfull changes and also higher m_price
+	int quality; // Higher quality materials will result in more powerful changes and also higher m_price
 public:
-	Moderators(string name, string description, Results propert) :Element(name, description, propert)
+	Moderators(string name, string description, Results<T> propert) : Element<T>(name, description, propert)
 	{
 		quality = 0;
 	}
@@ -129,14 +117,15 @@ public:
 	{
 		return quality;
 	}
-	Results get_properties()
+
+	Results<T> get_properties()
 	{
-		Results temp_propert = {
-			(int)(properties.m_price * amount * (float)(0.1f + 0.08f *(float) (quality + 15))),
-			(int)(properties.power * amount * (float)(0.05f + 0.0485f *(float) (quality + 15))),
-			(int)(properties.stability * amount * (float)(0.05f + 0.0485f *(float) (quality + 15))),
-			(int)(properties.radioactivity * amount * (float)(0.05f + 0.0485f *(float) (quality + 15))),
-			(int)(properties.op_price * amount * (float)(0.5f + 0.0335f *(float) (-quality + 15)))
+		Results<T> temp_propert = {
+				(int)(this->properties.m_price * this->amount * (T)(0.1f + 0.08f * (T)(quality + 15))),
+				(int)(this->properties.power * this->amount * (T)(0.05f + 0.0485f * (T)(quality + 15))),
+				(int)(this->properties.stability * this->amount * (T)(0.05f + 0.0485f * (T)(quality + 15))),
+				(int)(this->properties.radioactivity * this->amount * (T)(0.05f + 0.0485f * (T)(quality + 15))),
+				(int)(this->properties.op_price * this->amount * (T)(0.5f + 0.0335f * (T)(-quality + 15)))
 		};
 		return temp_propert;
 	}
@@ -151,27 +140,28 @@ public:
 	}
 };
 
+template<typename T>
 class FuelCell
 {
 private:
-	float m_price = 0; // The material price of the finalised fuel cell
+	float m_price = 0; // The material price of the finalized fuel cell
 	float power = 0; // How much power does one fuel cell produce in kWh
 	float stability = 0; // The more stable it is the better, low stability means it's unusable for energy production/increases op price, too much stability will generate less power
-	float radioactivity = 0; // The less radioactive the better, too radioactive means it's unusable/increaseas op the price
+	float radioactivity = 0; // The less radioactive the better, too radioactive means it's unusable/increases op price
 	float op_price = 0; // How much does it cost to run the fuel cell per hour
 
 	int max_size = 50; // Max size of the fuel cell, in-game cap
 	int current_size = 0; // The smaller the better op_price
 
 	// ### ELEMENTS ###
-	Fluxium flux{"Fluxium", "Description", Results{100, 50, 100, 100, 5}};
-	Moderators el1{"Exodite", "Description", Results{85, 200, -100, 175, 10} },
-		el2{"Titanite", "Description", Results{10, 0, 75, 1, -10} },
-		el3{"Helixite", "Description", Results{50, 0, 5, -150, 5} },
-		el4{"Stabilon", "Description", Results{80, -35, 500, 250, 50} },
-		el5{"Tesseractite", "Description", Results{15, 50, 0, 50, 5} };
+	Fluxium<T> flux{ "Fluxium", "Description", Results<T>{100, 100, 100, 100, 5} };
+	Moderators<T> el1{ "Exodite", "Description", Results<T>{85, 200, -100, 175, 10} },
+		el2{ "Titanite", "Description", Results<T>{10, 0, 75, 1, -10} },
+		el3{ "Helixite", "Description", Results<T>{50, 0, 5, -150, 5} },
+		el4{ "Stabilon", "Description", Results<T>{80, -35, 500, 250, 50} },
+		el5{ "Tesseractite", "Description", Results<T>{15, 50, 0, 50, 5} };
 public:
-	Results get_results()
+	Results<T> get_results()
 	{
 		m_price = flux.get_properties().m_price + el1.get_properties().m_price + el2.get_properties().m_price +
 			el3.get_properties().m_price + el4.get_properties().m_price + el5.get_properties().m_price;
@@ -182,7 +172,7 @@ public:
 		radioactivity = flux.get_properties().radioactivity + el1.get_properties().radioactivity + el2.get_properties().radioactivity + el3.get_properties().radioactivity +
 			el4.get_properties().radioactivity + el5.get_properties().radioactivity;
 		op_price = (flux.get_properties().op_price + el1.get_properties().op_price + el2.get_properties().op_price + el3.get_properties().op_price +
-			el4.get_properties().op_price + el5.get_properties().op_price) * ((current_size /(float) max_size) + 0.5f); // redo stability and radioactivity
+			el4.get_properties().op_price + el5.get_properties().op_price) * ((current_size / (T)max_size) + 0.5f); // redo stability and radioactivity
 		if (m_price <= 1)
 			m_price = 1;
 		if (power <= 1)
@@ -193,7 +183,7 @@ public:
 			radioactivity = 1;
 		if (op_price <= 1)
 			op_price = 1;
-		return Results{ (int)m_price, (int)power, (int)stability, (int)radioactivity, (int)op_price };
+		return Results<T>{(int)m_price, (int)power, (int)stability, (int)radioactivity, (int)op_price};
 	}
 	int get_max_size()
 	{
@@ -222,6 +212,7 @@ public:
 		case 5:
 			return el5.get_quality();
 		}
+		return -1;
 	}
 	int get_amount(int index)
 	{
@@ -328,7 +319,8 @@ public:
 	}
 };
 
-void draw_frame(FuelCell fuel, int selection)
+template<typename T>
+void draw_frame(FuelCell<T>& fuel, int selection)
 {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	system("CLS");
@@ -351,14 +343,14 @@ void draw_frame(FuelCell fuel, int selection)
 	SetConsoleTextAttribute(hConsole, 15);
 	cout << "]" << endl << endl;
 
-	if(selection == 0)
+	if (selection == 0)
 		SetConsoleTextAttribute(hConsole, 112);
 	cout << "Fluxium:     " << fuel.get_amount(0);
 	SetConsoleTextAttribute(hConsole, 15);
-	if(selection == 6)
+	if (selection == 6)
 		SetConsoleTextAttribute(hConsole, 112);
 	cout << "   Ratio [235/238]: " << fuel.get_addon(0);
-	SetConsoleTextAttribute(hConsole, 15); 
+	SetConsoleTextAttribute(hConsole, 15);
 	cout << " [";
 	temp_f_s = fuel.get_addon(0) / 10;
 	for (int i = 0; i < 10; i++)
@@ -375,7 +367,7 @@ void draw_frame(FuelCell fuel, int selection)
 		}
 	}
 	SetConsoleTextAttribute(hConsole, 15);
-	cout<< "]" << endl << endl;
+	cout << "]" << endl << endl;
 
 	if (selection == 1)
 		SetConsoleTextAttribute(hConsole, 112);
@@ -401,7 +393,7 @@ void draw_frame(FuelCell fuel, int selection)
 	SetConsoleTextAttribute(hConsole, 15);
 	if (selection == 9)
 		SetConsoleTextAttribute(hConsole, 112);
-	cout << "   Quality: "<< fuel.get_addon(3) << endl;
+	cout << "   Quality: " << fuel.get_addon(3) << endl;
 	SetConsoleTextAttribute(hConsole, 15);
 
 	if (selection == 4)
@@ -426,7 +418,7 @@ void draw_frame(FuelCell fuel, int selection)
 		SetConsoleTextAttribute(hConsole, 4);
 	if (fuel.get_results().m_price <= 6000)
 		SetConsoleTextAttribute(hConsole, 6);
-	if(fuel.get_results().m_price <= 2000)
+	if (fuel.get_results().m_price <= 2500)
 		SetConsoleTextAttribute(hConsole, 2);
 	cout << "Material-Price ($/p):  " << (float)fuel.get_results().m_price / 100 << endl;
 	if (fuel.get_results().power > 2500)
@@ -469,7 +461,7 @@ void draw_frame(FuelCell fuel, int selection)
 	if (fuel.get_results().radioactivity >= 9000 && fuel.get_current_size() > 0)
 		cout << endl << "Radioactivity too high, try...." << endl;
 	if (fuel.get_results().op_price >= 1500 && fuel.get_current_size() > 0)
-		cout << endl << "Opereting price too high, try...." << endl;
+		cout << endl << "Operating price too high, try...." << endl;
 	if (fuel.get_results().m_price >= 10000 && fuel.get_current_size() > 0)
 		cout << endl << "Fuel rod price too high, try...." << endl;
 	SetConsoleTextAttribute(hConsole, 15);
@@ -477,34 +469,37 @@ void draw_frame(FuelCell fuel, int selection)
 	SetConsoleTextAttribute(hConsole, 8);
 	cout << endl << endl << endl << "Controls:";
 	cout << endl << "W/S to navigate up/down";
-	cout << endl << "F to switch to the right collumn";
+	cout << endl << "F to switch to the right column";
 	cout << endl << "A/D to increase / decrease the numbers";
 	cout << endl << "H for help";
 }
+template<typename T>
 void draw_help()
 {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	system("CLS");
 	SetConsoleTextAttribute(hConsole, 15);
 	cout << "The goal of this simulator is to make the best fuel cell possible" << endl;
-	cout << "by having a good power output, that has great stability, low radioactivity and low cost." << endl << endl << endl ;
-	cout << "Cell size: refers to the amount of materials inside the cell, the lower the amount the lower the operating cost."<< endl << endl << endl;
-	cout << "Fluxium: this is the material that generates power, you can change the enrichment ratio [235/238]." << endl;
-	cout << "By adjusting the amount and the ratio you can generate more power, however bigger ratio and amounts also leads to more cost and decreased stability."<< endl << endl;
-	cout << "Exodite: this is a very volatile moderator that increase power explosively, however it is very radioactive and also unstable. Adding more of it to the fuel cell also increases operating costs." << endl << endl;
-	cout << "Titanite: this is a very cheap moderator used to slightly increase stability and decrease operating costs, this material also has no effect on power output." << endl << endl;
-	cout << "Helixite: this moderator is used as shielding against radiation while also not decreasing the reaction power or stability." << endl << endl;
-	cout << "Stabilon: this moderator is used to quickly stabilise the reaction, however it tends to decrease power ouput significantly and also increase radiation by a lot." << endl << endl;
-	cout << "Tesseractite: this moderator can slightly increase the power output without sacrificing stability, and only adding a tiny amount of radiation in the process" << endl << endl << endl;
-	cout << "The quality setting make moderators more potent (it increases both good and bad effects) while decreasing operating cost, for the an increased material cost. If the quality setting is decrease the reverse will be applied" << endl << endl;
-	cout << "The results are colored, green being a good value, yellow being mediocre and red being bad." << endl;
-	cout << "Additionally you can receive red flags, if any appear the resulting fuel cell is inefective.";
+	cout << "by having a good power output, great stability, low radioactivity, and low cost." << endl << endl << endl;
+	cout << "Cell size: refers to the amount of materials inside the cell. The lower the amount, the lower the operating cost." << endl << endl << endl;
+	cout << "Fluxium: this is the material that generates power. You can change the enrichment ratio [235/238]." << endl;
+	cout << "By adjusting the amount and the ratio, you can generate more power. However, a bigger ratio and more amount also lead to higher cost and decreased stability." << endl << endl;
+	cout << "Exodite: this is a very volatile moderator that increases power explosively. However, it is very radioactive and unstable. Adding more of it to the fuel cell also increases operating costs." << endl << endl;
+	cout << "Titanite: this is a very cheap moderator used to slightly increase stability and decrease operating costs. This material has no effect on power output." << endl << endl;
+	cout << "Helixite: this moderator is used as shielding against radiation while not decreasing the reaction power or stability." << endl << endl;
+	cout << "Stabilon: this moderator is used to quickly stabilize the reaction. However, it tends to decrease power output significantly and increase radiation by a lot." << endl << endl;
+	cout << "Tesseractite: this moderator can slightly increase the power output without sacrificing stability and only adding a tiny amount of radiation in the process." << endl << endl << endl;
+	cout << "The quality setting makes moderators more potent (increases both good and bad effects) while decreasing operating cost, at the expense of increased material cost. If the quality setting is decreased, the reverse will be applied." << endl << endl;
+	cout << "The results are colored, with green indicating good values, yellow indicating mediocre values, and red indicating bad values." << endl;
+	cout << "Additionally, you can receive red flags indicating an ineffective resulting fuel cell.";
 }
 
 int main()
 {
-	srand((unsigned)time(0));
-	FuelCell fuel_cell;
+	random_device rd;
+	mt19937 gen(rd());
+
+	FuelCell<int> fuel_cell;
 	draw_frame(fuel_cell, 0);
 
 	int selection = 0;
@@ -533,13 +528,13 @@ int main()
 		}
 		if (GetKeyState('W') & 0x8000)
 		{
-			if(selection > 0)
+			if (selection > 0)
 				selection--;
 			draw_frame(fuel_cell, selection);
 		}
 		if (GetKeyState('S') & 0x8000)
 		{
-			if(selection < 5)
+			if (selection < 5)
 				selection++;
 			draw_frame(fuel_cell, selection);
 		}
@@ -555,7 +550,7 @@ int main()
 		{
 			if (isHelping == false)
 			{
-				draw_help();
+				draw_help<int>();
 			}
 			else {
 				draw_frame(fuel_cell, selection);
